@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Zafiro - Detalle de Producto</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+  <style>
+    :root {
+      /* Colores base oficiales de Zafiro */
+      --zafiro-dark: #1b263b; 
+      --zafiro-blue: #526f93; 
+      --zafiro-bg: #e2e8f0;   
+      --zafiro-icon-blue: #0084ff; 
+      --zafiro-teal: #009688; /* Verde del botón ENVIAR */
+    }
+
+    body { background-color: var(--zafiro-bg); font-family: Arial, sans-serif; }
+
+    /* ========================================== */
+    /* ESTILOS DEL PRODUCTO ESPECÍFICO            */
+    /* ========================================== */
+
+    /* Botón Circular PAGAR */
+    .btn-pagar {
+      width: 140px; height: 140px;
+      background-color: var(--zafiro-blue);
+      color: white;
+      border-radius: 50%;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-decoration: none; border: none; font-size: 16px; font-weight: bold; letter-spacing: 1px;
+      margin: 0 auto; cursor: pointer; box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .btn-pagar:hover { transform: translateY(-8px) scale(1.05); box-shadow: 0 15px 25px rgba(0,0,0,0.25); color: white; }
+
+    /* Icono de comentario debajo de pagar */
+    .chat-icon { font-size: 45px; color: #222; text-align: center; display: block; margin-top: 20px; transition: transform 0.2s; cursor: pointer; }
+    .chat-icon:hover { transform: scale(1.1); }
+
+    /* Imagen del producto (Cuadro blanco con borde negro como en diseño) */
+    .product-image-box { background-color: white; border: 4px solid #111; height: 320px; width: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .product-image-box img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* Barra de Valoración (Estrellas y botón enviar) */
+    .review-bar { background-color: var(--zafiro-blue); border-radius: 20px; padding: 10px 25px; display: flex; align-items: center; justify-content: space-between; margin-top: 15px; }
+    .star-rating i { color: #ffc107; font-size: 28px; margin-right: 5px; cursor: pointer; transition: transform 0.2s; }
+    .star-rating i:hover { transform: scale(1.2); }
+    
+    .btn-enviar { background-color: var(--zafiro-teal); color: #000; font-weight: bold; border: none; border-radius: 5px; padding: 5px 20px; transition: background-color 0.2s; }
+    .btn-enviar:hover { background-color: #007a6e; color: white; }
+
+    /* Botones de acción derecha (Corazón, Enviar, Carrito) */
+    .action-btn-stack { display: flex; flex-direction: column; gap: 15px; align-items: flex-end;}
+    .action-circle {
+      width: 45px; height: 45px; background-color: var(--zafiro-icon-blue); color: white; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; font-size: 22px; text-decoration: none;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.15); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.2s;
+    }
+    .action-circle:hover { transform: scale(1.25) rotate(-5deg); background-color: #006bce; color: white; }
+
+    /* Clases para la animación del corazón */
+    .action-circle.active-heart { background-color: #fff !important; color: #ff1e1e !important; border: 1px solid #ff1e1e; animation: heartBeat 0.4s short; }
+    @keyframes heartBeat { 0% { transform: scale(1); } 30% { transform: scale(1.4); } 60% { transform: scale(1.1); } 100% { transform: scale(1.25); } }
+
+    /* Modal de Métodos de pago */
+    .payment-option { border: 2px solid #e2e8f0; border-radius: 10px; padding: 15px; margin-bottom: 10px; cursor: pointer; transition: border-color 0.2s, background-color 0.2s; }
+    .payment-option:hover { border-color: var(--zafiro-blue); background-color: #f8f9fa; }
+  </style>
+</head>
+<body>
+
+  <div class="container-fluid px-5 my-5">
+    <div class="row">
+      
+      <div class="col-md-3 text-center mb-4">
+        <button class="btn-pagar" data-bs-toggle="modal" data-bs-target="#modalPago">
+          <i class="bi bi-credit-card-2-front mb-1" style="font-size: 40px; color: #222;"></i>
+          PAGAR
+        </button>
+        <i class="bi bi-chat-square-text-fill chat-icon" onclick="toggleReviewBox()" title="Dejar una reseña"></i>
+      </div>
+
+      <div class="col-md-5 mb-4">
+        <div class="product-image-box">
+          <img id="detail-image" src="" alt="Cargando producto...">
+        </div>
+
+        <div id="reviewInputBox" style="display: none; margin-top: 15px;">
+          <textarea id="reviewTextInput" class="form-control shadow-sm border-0" rows="3" placeholder="Escribe tu reseña sobre el producto aquí..." style="border-radius: 15px; padding: 15px; resize: none;"></textarea>
+        </div>
+
+        <div class="review-bar">
+          <div class="star-rating" id="interactiveStars">
+            <i class="bi bi-star-fill" data-value="1"></i>
+            <i class="bi bi-star-fill" data-value="2"></i>
+            <i class="bi bi-star-fill" data-value="3"></i>
+            <i class="bi bi-star-fill" data-value="4"></i>
+            <i class="bi bi-star-fill" data-value="5"></i>
+          </div>
+          <button class="btn-enviar" onclick="enviarResena()">ENVIAR</button>
+        </div>
+      </div>
+
+      <div class="col-md-4 d-flex justify-content-between">
+        <div class="product-info pe-3">
+          <h5 class="fw-bold text-dark" id="detail-name">Cargando producto...</h5>
+          <p class="mb-3 text-dark fw-bold">Especificaciones :<br>
+            <span class="fw-normal" id="detail-specs"></span>
+          </p>
+          <h5 class="fw-bold text-dark mt-4">Precio: <br><span class="fw-normal" id="detail-price">$0</span></h5>
+        </div>
+
+        <div class="action-btn-stack">
+          <a href="#" id="likeBtn" class="action-circle" onclick="animarCorazon(event)"><i class="bi bi-heart"></i></a>
+          <a href="#" class="action-circle" onclick="compartirProducto(event)"><i class="bi bi-send"></i></a>
+          <a href="#" class="action-circle" onclick="agregarAlCarritoDesdePagina(event)"><i class="bi bi-cart"></i></a>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="row mt-5">
+      <div class="col-md-8 offset-md-3">
+        <h4 class="fw-bold" style="color: var(--zafiro-dark);">Reseñas del Producto</h4>
+        <div id="publishedReviewsContainer" class="mt-3">
+          <p class="text-muted" id="noReviewsMsg">Aún no hay reseñas. ¡Sé el primero en comentar haciendo clic en el icono de mensaje!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modalPago" tabindex="-1" aria-labelledby="modalPagoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0" style="border-radius: 20px;">
+        <div class="modal-header bg-primary text-white" style="border-radius: 20px 20px 0 0; background-color: var(--zafiro-blue) !important;">
+          <h5 class="modal-title" id="modalPagoLabel"><i class="bi bi-wallet2 me-2"></i>Selecciona un método de pago</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div class="payment-option d-flex align-items-center">
+            <i class="bi bi-bank fs-2 text-primary me-3"></i>
+            <div>
+              <h6 class="mb-0 fw-bold">PSE</h6>
+              <small class="text-muted">Transferencia bancaria segura</small>
+            </div>
+          </div>
+          <div class="payment-option d-flex align-items-center">
+            <i class="bi bi-credit-card fs-2 text-info me-3"></i>
+            <div>
+              <h6 class="mb-0 fw-bold">Tarjeta de Crédito / Débito</h6>
+              <small class="text-muted">Visa, MasterCard, American Express</small>
+            </div>
+          </div>
+          <div class="payment-option d-flex align-items-center">
+            <i class="bi bi-cash-coin fs-2 text-success me-3"></i>
+            <div>
+              <h6 class="mb-0 fw-bold">Efecty / Baloto</h6>
+              <small class="text-muted">Pago en efectivo presencial</small>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-primary" style="background-color: var(--zafiro-blue); border:none;">Continuar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 2050;">
+    <div id="shareToast" class="toast align-items-center text-white bg-dark border-0" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body">
+          <i class="bi bi-check-circle-fill text-success me-2"></i> Enlace copiado al portapapeles. ¡Listo para compartir!
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    let productoActual = null;
+
+    // Llenar la información del producto apenas cargue la vista
+    document.addEventListener('DOMContentLoaded', () => {
+        const prodData = localStorage.getItem('zafiro_producto_actual');
+        if (prodData) {
+            productoActual = JSON.parse(prodData);
+            document.getElementById('detail-name').innerText = productoActual.nombre;
+            document.getElementById('detail-image').src = productoActual.imagen;
+            document.getElementById('detail-price').innerText = '$' + productoActual.precio.toLocaleString('es-CO');
+            
+            // Asignar especificaciones
+            const categoria = productoActual.categoria || 'N/A';
+            const color = productoActual.color || 'N/A';
+            const talla = productoActual.talla || 'N/A';
+            document.getElementById('detail-specs').innerHTML = `Categoría: ${categoria}<br>Color: ${color}<br>Talla: ${talla}`;
+            
+            // Re-asignar botón de me gusta si estaba activo
+            let likedItems = JSON.parse(localStorage.getItem('zafiro_liked_items')) || [];
+            if (likedItems.includes(productoActual.nombre)) {
+                const likeBtn = document.getElementById('likeBtn');
+                likeBtn.classList.add('active-heart');
+                likeBtn.innerHTML = '<i class="bi bi-heart-fill"></i>';
+            }
+        }
+        renderizarResenas();
+    });
+
+    // ========================================================
+    // INTERACCIONES BOTONES FLOTANTES
+    // ========================================================
+
+    // 1. Agregar al carrito y conectar con el Home
+    function agregarAlCarritoDesdePagina(event) {
+        if(event) event.preventDefault();
+        if (!productoActual) return;
+
+        let carritoGlobal = JSON.parse(localStorage.getItem('zafiro_carrito_global')) || [];
+        
+        let productoExistente = carritoGlobal.find(item => item.nombre === productoActual.nombre);
+        if (productoExistente) {
+            productoExistente.cantidad += 1;
+        } else {
+            carritoGlobal.push({ 
+                nombre: productoActual.nombre, 
+                imagen: productoActual.imagen, 
+                precio: productoActual.precio, 
+                cantidad: 1 
+            });
+        }
+        
+        // Guardamos y disparamos alerta
+        localStorage.setItem('zafiro_carrito_global', JSON.stringify(carritoGlobal));
+        alert(`¡${productoActual.nombre} se ha añadido a tu carrito de compras!`);
+    }
+
+    // 2. Animar y guardar Corazón
+    function animarCorazon(event) {
+        if(event) event.preventDefault();
+        if (!productoActual) return;
+
+        const likeBtn = document.getElementById('likeBtn');
+        let likedItems = JSON.parse(localStorage.getItem('zafiro_liked_items')) || [];
+
+        if (likeBtn.classList.contains('active-heart')) {
+            likeBtn.classList.remove('active-heart');
+            likeBtn.innerHTML = '<i class="bi bi-heart"></i>';
+            likedItems = likedItems.filter(item => item !== productoActual.nombre);
+        } else {
+            likeBtn.classList.add('active-heart');
+            likeBtn.innerHTML = '<i class="bi bi-heart-fill"></i>';
+            if (!likedItems.includes(productoActual.nombre)) likedItems.push(productoActual.nombre);
+        }
+        localStorage.setItem('zafiro_liked_items', JSON.stringify(likedItems));
+    }
+
+    // 3. Compartir
+    function compartirProducto(event) {
+        if(event) event.preventDefault();
+        const toastEl = document.getElementById('shareToast');
+        const toast = new bootstrap.Toast(toastEl);
+        toast.show();
+    }
+
+    // ========================================================
+    // LÓGICA DE RESEÑAS
+    // ========================================================
+    function toggleReviewBox() {
+        const box = document.getElementById('reviewInputBox');
+        if (box.style.display === 'none') {
+            box.style.display = 'block';
+            document.getElementById('reviewTextInput').focus();
+        } else {
+            box.style.display = 'none';
+        }
+    }
+
+    let calificacionSeleccionada = 5;
+    const estrellas = document.querySelectorAll('#interactiveStars i');
+    estrellas.forEach(estrella => {
+        estrella.addEventListener('click', function() {
+            calificacionSeleccionada = parseInt(this.getAttribute('data-value'));
+            estrellas.forEach(s => {
+                const valor = parseInt(s.getAttribute('data-value'));
+                if (valor <= calificacionSeleccionada) {
+                    s.classList.remove('bi-star');
+                    s.classList.add('bi-star-fill');
+                } else {
+                    s.classList.remove('bi-star-fill');
+                    s.classList.add('bi-star');
+                }
+            });
+        });
+    });
+
+    function renderizarResenas() {
+        const contenedor = document.getElementById('publishedReviewsContainer');
+        if (!productoActual) return;
+        
+        const storageKey = 'resenas_' + productoActual.nombre.replace(/\s+/g, '_');
+        let resenasGuardadas = JSON.parse(localStorage.getItem(storageKey)) || [];
+
+        if (resenasGuardadas.length === 0) {
+            contenedor.innerHTML = '<p class="text-muted">Aún no hay reseñas. ¡Sé el primero en comentar haciendo clic en el icono de mensaje!</p>';
+            return;
+        }
+
+        contenedor.innerHTML = '';
+        resenasGuardadas.forEach(resena => {
+            let estrellasHTML = '';
+            for (let i = 0; i < 5; i++) {
+                estrellasHTML += i < resena.calificacion ? '<i class="bi bi-star-fill text-warning"></i>' : '<i class="bi bi-star text-warning"></i>';
+            }
+            contenedor.innerHTML += `
+                <div class="card mb-3 border-0 shadow-sm" style="border-radius: 15px;">
+                    <div class="card-body py-2 px-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <h6 class="fw-bold m-0"><i class="bi bi-person-circle me-2"></i>Usuario Anónimo</h6>
+                            <small class="text-muted">${resena.fecha}</small>
+                        </div>
+                        <div class="mb-2" style="font-size: 14px;">${estrellasHTML}</div>
+                        <p class="m-0 text-dark" style="font-size: 14px;">${resena.texto}</p>
+                    </div>
+                </div>`;
+        });
+    }
+
+    function enviarResena() {
+        const textoInput = document.getElementById('reviewTextInput').value.trim();
+        if (textoInput === '') {
+            alert('Por favor, escribe una reseña antes de enviar.');
+            return;
+        }
+
+        const storageKey = 'resenas_' + productoActual.nombre.replace(/\s+/g, '_');
+        let resenasGuardadas = JSON.parse(localStorage.getItem(storageKey)) || [];
+
+        const fechaActual = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+        const nuevaResena = {
+            calificacion: calificacionSeleccionada,
+            texto: textoInput,
+            fecha: fechaActual
+        };
+
+        resenasGuardadas.unshift(nuevaResena);
+
+        if (resenasGuardadas.length > 20) {
+            resenasGuardadas = resenasGuardadas.slice(0, 20);
+        }
+
+        localStorage.setItem(storageKey, JSON.stringify(resenasGuardadas));
+        
+        document.getElementById('reviewTextInput').value = '';
+        document.getElementById('reviewInputBox').style.display = 'none';
+        renderizarResenas();
+    }
+  </script>
+</body>
+</html>

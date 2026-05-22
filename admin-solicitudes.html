@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zafiro - Panel de Solicitudes</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    body { background-color: #e2e8f0; font-family: Arial, sans-serif; }
+    .header-bg { background-color: #1b263b; }
+    /* Estilos para las pestañas activas e inactivas */
+    .tab-activa { background-color: #ffffff; color: #1b263b; border-bottom: 2px solid #ffffff; }
+    .tab-inactiva { background-color: #cbd5e1; color: #64748b; }
+  </style>
+</head>
+<body class="p-8">
+
+  <div class="max-w-5xl mx-auto">
+    
+    <div class="header-bg text-white p-6 rounded-t-2xl shadow-lg flex justify-between items-center">
+      <h1 class="text-2xl font-[Georgia] tracking-wider">📦 HISTORIAL DE SOLICITUDES</h1>
+      <button onclick="limpiarBaseDeDatos()" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded font-bold transition-colors">
+        <i class="bi bi-trash3"></i> Borrar Todo
+      </button>
+    </div>
+
+    <div class="flex mt-1">
+      <button id="btnSinResponder" onclick="cambiarFiltro('sinResponder')" class="tab-activa px-6 py-3 font-bold rounded-tl-lg transition-colors flex-1 md:flex-none">
+        <i class="bi bi-inbox"></i> Sin Responder (<span id="countSinResponder">0</span>)
+      </button>
+      <button id="btnResueltas" onclick="cambiarFiltro('resueltas')" class="tab-inactiva px-6 py-3 font-bold rounded-tr-lg transition-colors flex-1 md:flex-none">
+        <i class="bi bi-check2-all"></i> Resueltas (<span id="countResueltas">0</span>)
+      </button>
+    </div>
+
+    <div id="contenedorSolicitudes" class="bg-white p-6 rounded-b-2xl shadow-lg min-h-[300px] flex flex-col gap-4">
+      <p class="text-gray-500 text-center italic mt-10">Cargando solicitudes...</p>
+    </div>
+    
+  </div>
+
+  <script>
+    let filtroActual = 'sinResponder'; // Estado inicial
+
+    // Ejecutar esta función apenas cargue la página
+    window.addEventListener('DOMContentLoaded', cargarSolicitudes);
+
+    function cargarSolicitudes() {
+      // Extraer la base de datos local
+      let solicitudes = JSON.parse(localStorage.getItem('zafiro_solicitudes')) || [];
+
+      // NOTA: Se eliminó el límite de 20 solicitudes. Ahora se guardarán todas sin importar la cantidad.
+
+      // Separar en dos listas según si tienen respuesta o no
+      const sinResponder = solicitudes.filter(s => !s.respuesta || s.respuesta.trim() === '');
+      const resueltas = solicitudes.filter(s => s.respuesta && s.respuesta.trim() !== '');
+
+      // Actualizar contadores de las pestañas
+      document.getElementById('countSinResponder').innerText = sinResponder.length;
+      document.getElementById('countResueltas').innerText = resueltas.length;
+
+      // Seleccionar qué lista vamos a renderizar según la pestaña activa
+      let solicitudesARenderizar = filtroActual === 'sinResponder' ? sinResponder : resueltas;
+
+      const contenedor = document.getElementById('contenedorSolicitudes');
+
+      // Si no hay solicitudes en la pestaña actual
+      if (solicitudesARenderizar.length === 0) {
+        contenedor.innerHTML = `<div class="text-center text-gray-500 mt-10 text-lg">
+                                  <i class="bi bi-folder2-open text-4xl block mb-2"></i>
+                                  No hay solicitudes en esta sección.
+                                </div>`;
+        return;
+      }
+
+      // Limpiar el contenedor
+      contenedor.innerHTML = '';
+
+      // Renderizar tarjetas (las más nuevas primero usando reverse)
+      // Usamos [...solicitudesARenderizar] para no mutar el array original al hacer reverse()
+      [...solicitudesARenderizar].reverse().forEach(solicitud => {
+        
+        // Verificación de archivo
+        let botonArchivo = '';
+        if (solicitud.archivoCargado && solicitud.nombreArchivo) {
+          botonArchivo = `
+            <a href="${solicitud.archivoCargado}" download="${solicitud.nombreArchivo}" 
+               class="inline-flex items-center gap-2 bg-[#526f93] hover:bg-[#1b263b] text-white px-4 py-2 rounded-lg transition-colors shadow mb-2 md:mb-0">
+              <i class="bi bi-cloud-arrow-down-fill text-xl"></i>
+              Descargar (${solicitud.nombreArchivo})
+            </a>
+          `;
+        } else {
+          botonArchivo = `<span class="text-gray-400 italic text-sm inline-block mt-2">Sin archivo adjunto</span>`;
+        }
+
+        // Color de etiqueta
+        const colorTipo = solicitud.tipo === 'INTERCAMBIO' ? 'bg-blue-500' : 'bg-orange-500';
+
+        // LÓGICA DE COMENTARIOS/RESPUESTAS
+        let seccionDesarrollador = '';
+        if (filtroActual === 'sinResponder') {
+          // Si no tiene respuesta, mostramos la caja de texto para responder
+          seccionDesarrollador = `
+            <div class="mt-4 p-4 bg-gray-100 rounded-lg border border-gray-200">
+              <label class="block text-xs text-gray-600 font-bold uppercase mb-2"><i class="bi bi-chat-left-dots"></i> Respuesta del Desarrollador:</label>
+              <textarea id="resp-${solicitud.id}" rows="2" class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:border-[#526f93] text-sm" placeholder="Escribe aquí la respuesta o resolución..."></textarea>
+              <button onclick="guardarRespuesta('${solicitud.id}')" class="mt-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-bold text-sm transition-colors">
+                Guardar y Marcar como Resuelta
+              </button>
+            </div>
+          `;
+        } else {
+          // Si ya está resuelta, mostramos la respuesta que se guardó
+          seccionDesarrollador = `
+            <div class="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+              <label class="block text-xs text-green-700 font-bold uppercase mb-1"><i class="bi bi-check-circle-fill"></i> Solicitud Resuelta:</label>
+              <p class="text-gray-800 text-sm italic">${solicitud.respuesta}</p>
+            </div>
+          `;
+        }
+
+        // Construir tarjeta
+        const tarjetaHtml = `
+          <div class="border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow bg-gray-50">
+            <div class="flex justify-between items-start mb-3">
+              <div>
+                <span class="${colorTipo} text-white text-xs font-bold px-3 py-1 rounded-full tracking-wider shadow-sm">
+                  ${solicitud.tipo}
+                </span>
+                <span class="text-gray-400 text-sm ml-2"><i class="bi bi-clock"></i> ID: ${solicitud.id}</span>
+              </div>
+              <div class="text-sm font-bold text-gray-600 bg-gray-200 px-3 py-1 rounded-lg">
+                <i class="bi bi-calendar-event"></i> ${solicitud.fecha || 'Sin fecha'}
+              </div>
+            </div>
+            
+            <h3 class="text-xl font-bold text-[#1b263b] mb-2"><i class="bi bi-box-seam"></i> Producto: ${solicitud.producto || 'No especificado'}</h3>
+            
+            <div class="bg-white p-3 rounded border border-gray-100 mb-4 text-gray-700 text-sm">
+              <strong class="block text-xs text-gray-500 uppercase mb-1">Razón:</strong>
+              ${solicitud.razon || 'Sin detalles proporcionados.'}
+            </div>
+
+            <div class="border-t border-gray-200 pt-3 flex flex-col md:flex-row md:items-center justify-between">
+              ${botonArchivo}
+            </div>
+
+            ${seccionDesarrollador}
+          </div>
+        `;
+
+        contenedor.innerHTML += tarjetaHtml;
+      });
+    }
+
+    // Función para manejar el cambio de pestañas (Tabs)
+    function cambiarFiltro(nuevoFiltro) {
+      filtroActual = nuevoFiltro;
+      
+      const btnSinResponder = document.getElementById('btnSinResponder');
+      const btnResueltas = document.getElementById('btnResueltas');
+
+      // Cambiar estilos visuales de las pestañas
+      if (filtroActual === 'sinResponder') {
+        btnSinResponder.className = "tab-activa px-6 py-3 font-bold rounded-tl-lg transition-colors flex-1 md:flex-none";
+        btnResueltas.className = "tab-inactiva px-6 py-3 font-bold rounded-tr-lg transition-colors flex-1 md:flex-none";
+      } else {
+        btnResueltas.className = "tab-activa px-6 py-3 font-bold rounded-tr-lg transition-colors flex-1 md:flex-none";
+        btnSinResponder.className = "tab-inactiva px-6 py-3 font-bold rounded-tl-lg transition-colors flex-1 md:flex-none";
+      }
+
+      // Volver a renderizar
+      cargarSolicitudes();
+    }
+
+    // Función para guardar el comentario del desarrollador
+    function guardarRespuesta(id) {
+      const textarea = document.getElementById(`resp-${id}`);
+      const textoRespuesta = textarea.value.trim();
+
+      if (!textoRespuesta) {
+        alert("Por favor, escribe una respuesta antes de guardar.");
+        return;
+      }
+
+      // Buscar la solicitud en la base de datos y agregarle la respuesta
+      let solicitudes = JSON.parse(localStorage.getItem('zafiro_solicitudes')) || [];
+      const index = solicitudes.findIndex(s => String(s.id) === String(id));
+
+      if (index !== -1) {
+        solicitudes[index].respuesta = textoRespuesta;
+        localStorage.setItem('zafiro_solicitudes', JSON.stringify(solicitudes));
+        
+        // Recargar la vista (la solicitud se moverá automáticamente a "Resueltas")
+        cargarSolicitudes();
+      }
+    }
+
+    // Función para limpiar la base de datos
+    function limpiarBaseDeDatos() {
+      if(confirm("¿Estás seguro de que deseas borrar TODAS las solicitudes? Esto no se puede deshacer.")) {
+        localStorage.removeItem('zafiro_solicitudes');
+        cargarSolicitudes();
+      }
+    }
+  </script>
+</body>
+</html>

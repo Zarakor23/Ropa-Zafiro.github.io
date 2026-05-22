@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Zafiro - Unisex</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Configuramos Tailwind para que NO borre los estilos de Bootstrap
+    tailwind.config = {
+      corePlugins: {
+        preflight: false,
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --zafiro-blue: #526f93; 
+      --zafiro-dark: #1b263b; 
+      --zafiro-bg: #e2e8f0; 
+      --zafiro-red: #ff1e1e; 
+      --zafiro-icon-blue: #0084ff; 
+    }
+    
+    body { background-color: var(--zafiro-bg); font-family: Arial, sans-serif; }
+    
+    /* Estilos de la tarjeta de producto */
+    .zafiro-card { background-color: var(--zafiro-blue); border: none; border-radius: 0; color: white; transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .zafiro-card:hover { transform: translateY(-8px); box-shadow: 0 12px 20px rgba(0,0,0,0.2); }
+    .zafiro-card-img-wrapper { position: relative; background-color: white; height: 250px; margin: 10px; overflow: hidden; }
+    .zafiro-card-img-wrapper img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    
+    /* Botones de acción (Corazón, Compartir, Carrito) */
+    .floating-icons { position: absolute; top: 10px; right: 10px; display: flex; flex-direction: column; gap: 8px; }
+    .floating-icons .icon-btn { width: 32px; height: 32px; background-color: var(--zafiro-icon-blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: transform 0.2s ease; }
+    .floating-icons .icon-btn:hover { transform: scale(1.15); background-color: #006bce; }
+
+    /* Animación del corazón (Me gusta) */
+    .floating-icons .icon-btn.active-heart {
+      background-color: #fff !important;
+      color: #ff1e1e !important;
+      border: 1px solid #ff1e1e;
+      animation: heartBeat 0.4s ease-in-out;
+    }
+    @keyframes heartBeat {
+      0% { transform: scale(1); }
+      30% { transform: scale(1.4); }
+      60% { transform: scale(1.1); }
+      100% { transform: scale(1.25); }
+    }
+
+    .btn-comprar { background-color: var(--zafiro-red); color: white; border: none; border-radius: 0; padding: 2px 15px; font-size: 14px; transition: background-color 0.2s; }
+    .btn-comprar:hover { background-color: #d11a1a; color: white; }
+    
+    .card-text-custom p { margin-bottom: 2px; font-size: 12px; line-height: 1.2; }
+  </style>
+</head>
+<body>
+
+  <div class="container-fluid px-5 my-5">
+    <div id="productGrid" class="row row-cols-1 row-cols-md-4 g-4">
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+
+  <script>
+    const productGrid = document.getElementById('productGrid');
+
+    // Base de datos de productos Unisex
+    const products = [
+      { src: 'Prenda u1.jpg', name: 'Gorra selección Colombia', category: 'Unisex', color: 'Amarillo', size: 'Única' },
+      { src: 'Prenda u2.jpg', name: 'Gorra selección Colombia', category: 'Unisex', color: 'Negro', size: 'Única' },
+      { src: 'Prenda u3.jpg', name: 'Buso capota', category: 'Unisex', color: 'Gris', size: 'S-XXL' },
+      { src: 'Prenda u4.jpg', name: 'Chaqueta verde', category: 'Unisex', color: 'Verde', size: 'M-XS' },
+      { src: 'Prenda u5.jpg', name: 'Chaqueta selección Colombia', category: 'Unisex', color: 'Rojo', size: 'S-XS' },
+      { src: 'Prenda u6.jpg', name: 'Chaqueta selección Colombia', category: 'Unisex', color: 'Amarillo', size: 'XL-M' }
+    ];
+
+    // Función que arma la tarjeta de cada producto
+    const tarjetaHTML = ({ src, name, category, color, size }) => {
+      const precioBase = 45000; // Asignamos un precio base por defecto a la sección
+      return `
+        <div class="col">
+          <div class="card h-100 zafiro-card pb-2">
+            <div class="zafiro-card-img-wrapper">
+              <img src="${src}" alt="${name}" style="width: 100%; height: 100%; object-fit: cover;">
+              <div class="floating-icons">
+                <a href="#" class="icon-btn zafiro-heart-btn" data-product-title="${name}" onclick="toggleLike(event, this, '${name}')"><i class="bi bi-heart"></i></a>
+                <a href="#" class="icon-btn" onclick="compartirProducto(event, '${name}')"><i class="bi bi-send"></i></a>
+                <a href="#" class="icon-btn" onclick="addToCart(event, '${name}', ${precioBase}, '${src}')"><i class="bi bi-cart"></i></a>
+              </div>
+            </div>
+            <div class="card-body py-1 card-text-custom">
+              <p>${name}</p><p>${category}</p><p>${color}</p><p>${size}</p>
+              <div class="d-flex align-items-center mt-2">
+                <span class="me-2 text-light" style="font-size: 13px;">$${precioBase.toLocaleString('es-CO')}</span>
+                <button class="btn btn-comprar" onclick="verProducto(event, '${name}', ${precioBase}, '${category}', '${color}', '${size}', '${src}')">Comprar</button>
+              </div>
+            </div>
+          </div>
+        </div>`;
+    };
+
+    function renderProducts(items) {
+      productGrid.innerHTML = items.length
+        ? items.map(tarjetaHTML).join('')
+        : '<div class="col"><div class="text-center text-muted">No se encontraron productos.</div></div>';
+      restoreLikedStates();
+    }
+
+    // --- LÓGICA DE INTERACCIÓN GLOBAL Y CARRITO ---
+
+    function addToCart(event, productName, price, productImage) {
+        if(event) event.preventDefault();
+        
+        let carritoGlobal = JSON.parse(localStorage.getItem('zafiro_carrito_global')) || [];
+        let productoExistente = carritoGlobal.find(item => item.nombre === productName);
+        
+        if (productoExistente) {
+            productoExistente.cantidad += 1;
+        } else {
+            carritoGlobal.push({ nombre: productName, imagen: productImage, precio: price, cantidad: 1 });
+        }
+        
+        // Al guardar en localStorage, el index/home detectará el cambio y actualizará el carrito visualmente
+        localStorage.setItem('zafiro_carrito_global', JSON.stringify(carritoGlobal));
+        alert(`¡${productName} se ha añadido a tu carrito!`);
+    }
+
+    function toggleLike(event, element, productName) {
+        event.preventDefault();
+        let likedItems = JSON.parse(localStorage.getItem('zafiro_liked_items')) || [];
+        
+        if (element.classList.contains('active-heart')) {
+            element.classList.remove('active-heart');
+            element.innerHTML = '<i class="bi bi-heart"></i>';
+            likedItems = likedItems.filter(item => item !== productName);
+        } else {
+            element.classList.add('active-heart');
+            element.innerHTML = '<i class="bi bi-heart-fill"></i>';
+            if (!likedItems.includes(productName)) likedItems.push(productName);
+        }
+        localStorage.setItem('zafiro_liked_items', JSON.stringify(likedItems));
+    }
+
+    function restoreLikedStates() {
+        let likedItems = JSON.parse(localStorage.getItem('zafiro_liked_items')) || [];
+        if (likedItems.length === 0) return;
+        
+        const heartButtons = document.querySelectorAll('.zafiro-heart-btn');
+        heartButtons.forEach(button => {
+            const productName = button.getAttribute('data-product-title');
+            if (likedItems.includes(productName)) {
+                button.classList.add('active-heart');
+                button.innerHTML = '<i class="bi bi-heart-fill"></i>';
+            }
+        });
+    }
+
+    function verProducto(event, productName, priceNum, category, color, size, imageSrc) {
+        if(event) event.preventDefault();
+        localStorage.setItem('zafiro_producto_actual', JSON.stringify({ 
+            nombre: productName, 
+            imagen: imageSrc, 
+            precio: priceNum,
+            categoria: category,
+            color: color,
+            talla: size
+        }));
+        window.location.href = 'Página producto.html';
+    }
+
+    function compartirProducto(event, productName) {
+        if(event) event.preventDefault();
+        if (navigator.share) {
+            navigator.share({ title: productName, text: '¡Mira este producto en Zafiro: ' + productName + '!', url: window.location.href })
+            .catch(() => alert('¡' + productName + ' compartido!'));
+        } else {
+            alert('¡' + productName + ' compartido!');
+        }
+    }
+
+    // Inicializar todo al cargar
+    document.addEventListener('DOMContentLoaded', () => {
+        renderProducts(products);
+    });
+  </script>
+</body>
+</html>

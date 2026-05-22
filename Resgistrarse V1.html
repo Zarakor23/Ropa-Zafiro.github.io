@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Zafiro - Regístrate</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+  <style>
+    :root {
+      /* Colores base */
+      --zafiro-dark: #1b263b;
+      --zafiro-blue: #526f93; 
+      --zafiro-bg: #e2e8f0;   
+      
+      /* Colores para la tarjeta de formulario */
+      --login-header-bg: #287b92; /* Verde azulado del encabezado */
+      --login-card-bg: #d7f4ee;   /* Fondo menta claro */
+      --login-input-bg: #577dca;  /* Azul de los campos de texto */
+      --login-btn-bg: #74b3c3;    /* Botón continuar */
+      --login-btn-shadow: #a1c6c2;/* Sombra del botón */
+    }
+
+    body {
+      background-color: var(--zafiro-bg);
+      font-family: Arial, sans-serif;
+    }
+
+    /* ========================================== */
+    /* ESTILOS DEL REGISTRO                       */
+    /* ========================================== */
+    
+    /* Contenedor para centrar la tarjeta */
+    .login-container {
+      min-height: 70vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 15px; 
+    }
+
+    /* Tarjeta principal */
+    .login-card {
+      width: 100%;
+      max-width: 550px;
+      background-color: var(--login-card-bg); 
+      border-radius: 0; /* Bordes rectos según el diseño original */
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+
+    /* Encabezado "REGÍSTRATE" */
+    .login-header {
+      background-color: var(--login-header-bg);
+      color: white;
+      text-align: center;
+      padding: 25px 20px;
+    }
+    .login-header h2 {
+      margin: 0;
+      font-family: "Georgia", serif; 
+      font-size: 32px;
+      letter-spacing: 1px;
+    }
+
+    /* Cuerpo del formulario */
+    .login-body {
+      padding: 40px 50px;
+      text-align: center;
+    }
+
+    /* Campos de entrada (Inputs) */
+    .login-input {
+      background-color: var(--login-input-bg);
+      border: none;
+      color: white;
+      border-radius: 8px; 
+      padding: 12px 20px;
+      margin-bottom: 20px; 
+      width: 100%;
+      font-size: 15px;
+    }
+    .login-input::placeholder {
+      color: rgba(255, 255, 255, 0.8);
+    }
+    .login-input:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(87, 125, 202, 0.5);
+    }
+
+    /* Botón Continuar */
+    .login-btn {
+      background-color: var(--login-btn-bg);
+      color: white;
+      border: none;
+      width: 100%;
+      padding: 15px;
+      font-size: 22px;
+      border-radius: 12px;
+      margin-top: 15px;
+      font-family: "Georgia", serif; 
+      letter-spacing: 1px;
+      box-shadow: 5px 5px 0px var(--login-btn-shadow);
+      transition: all 0.2s ease;
+    }
+    .login-btn:active {
+      transform: translate(3px, 3px);
+      box-shadow: 2px 2px 0px var(--login-btn-shadow);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container login-container">
+    <div class="login-card">
+      
+      <div class="login-header">
+        <h2>REGÍSTRATE</h2>
+      </div>
+
+      <div class="login-body">
+        <form>
+          <input type="text" class="login-input" placeholder="Nombre">
+          <input type="email" class="login-input" placeholder="Correo">
+          <input type="password" class="login-input" placeholder="Contraseña">
+          <input type="tel" class="login-input" placeholder="Teléfono">
+          
+          <button type="button" class="login-btn" onclick="window.location.href='Prueba página perfil.html'">CONTINUAR</button>
+        </form>
+      </div>
+      
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+</body>
+</html>
